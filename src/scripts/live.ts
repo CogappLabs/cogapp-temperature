@@ -46,8 +46,8 @@ function updateCard(id: string, latest: number, unit: string, band: Band, points
   svg?.querySelector("[data-area]")?.setAttribute("d", area);
   const minEl = document.querySelector(`[data-spark-min="${id}"]`);
   const maxEl = document.querySelector(`[data-spark-max="${id}"]`);
-  if (minEl) minEl.textContent = `${min.toFixed(1)}${unit}`;
-  if (maxEl) maxEl.textContent = `${max.toFixed(1)}${unit}`;
+  if (minEl) minEl.textContent = `Low ${min.toFixed(1)}${unit}`;
+  if (maxEl) maxEl.textContent = `High ${max.toFixed(1)}${unit}`;
 
   const scale = document.querySelector(`[data-scale="${id}"]`);
   scale?.querySelectorAll("[data-seg]").forEach((seg) => {

@@ -45,7 +45,7 @@ const { line, area, min, max } = buildPaths(points);
     <path data-line d={line} fill="none" stroke={stroke} stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></path>
   </svg>
   <figcaption class="flex justify-between text-xs text-grey mt-1 font-mono">
-    <span data-spark-min={id}>{min.toFixed(1)}{unit}</span>
-    <span data-spark-max={id}>{max.toFixed(1)}{unit}</span>
+    <span data-spark-min={id}>Low {min.toFixed(1)}{unit}</span>
+    <span data-spark-max={id}>High {max.toFixed(1)}{unit}</span>
   </figcaption>
 </figure>
