@@ -1,0 +1,51 @@
+---
+import type { Point } from "../lib/adafruit";
+
+interface Props {
+  points: Point[];
+  stroke: string;
+  fill: string;
+  unit: string;
+  id: string;
+}
+const { points, stroke, fill, unit, id } = Astro.props;
+
+const W = 600;
+const H = 110;
+const PAD = 8;
+
+function buildPaths(pts: Point[]) {
+  const vals = pts.map((p) => p.value);
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  const range = max - min || 1;
+  const stepX = (W - PAD * 2) / Math.max(pts.length - 1, 1);
+  const y = (v: number) => H - PAD - ((v - min) / range) * (H - PAD * 2);
+  const coords = pts.map((p, i) => [PAD + i * stepX, y(p.value)] as const);
+  const line = coords.map(([x, yy], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${yy.toFixed(1)}`).join(" ");
+  const area = `${line} L${coords[coords.length - 1][0].toFixed(1)},${H - PAD} L${coords[0][0].toFixed(1)},${H - PAD} Z`;
+  return { line, area, min, max };
+}
+
+const { line, area, min, max } = buildPaths(points);
+---
+
+<figure class="m-0">
+  <svg
+    viewBox={`0 0 ${W} ${H}`}
+    class="w-full h-auto block"
+    role="img"
+    aria-label={`Recent history, ranging ${min.toFixed(1)} to ${max.toFixed(1)} ${unit}`}
+    data-spark={id}
+    data-w={W}
+    data-h={H}
+    data-pad={PAD}
+  >
+    <path data-area d={area} fill={fill} opacity="0.5"></path>
+    <path data-line d={line} fill="none" stroke={stroke} stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></path>
+  </svg>
+  <figcaption class="flex justify-between text-xs text-grey mt-1 font-mono">
+    <span data-spark-min={id}>{min.toFixed(1)}{unit}</span>
+    <span data-spark-max={id}>{max.toFixed(1)}{unit}</span>
+  </figcaption>
+</figure>

@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+/* Untitled Serif */
+@font-face {
+  font-family: "Untitled serif";
+  font-style: normal;
+  font-weight: 400;
+  src: url("/cogapp-temperature/fonts/untitled-serif/untitled-serif-regular.woff2") format("woff2");
+  font-display: optional;
+}
+@font-face {
+  font-family: "Untitled serif";
+  font-style: italic;
+  font-weight: 400;
+  src: url("/cogapp-temperature/fonts/untitled-serif/untitled-serif-regular-italic.woff2") format("woff2");
+  font-display: optional;
+}
+@font-face {
+  font-family: "Untitled serif";
+  font-style: normal;
+  font-weight: 700;
+  src: url("/cogapp-temperature/fonts/untitled-serif/untitled-serif-bold.woff2") format("woff2");
+  font-display: optional;
+}
+
+@font-face {
+  font-family: "Untitled serif fallback";
+  src: local("Georgia");
+  size-adjust: 102%;
+  ascent-override: 92%;
+  descent-override: 24%;
+  line-gap-override: 0%;
+}
+
+/* Civil */
+@font-face {
+  font-family: Civil;
+  font-style: normal;
+  font-weight: 300;
+  font-feature-settings: "ss03", "tnum", "zero";
+  src: url("/cogapp-temperature/fonts/civil/CivilPremium-Light2.woff2") format("woff2");
+  font-display: optional;
+}
+@font-face {
+  font-family: Civil;
+  font-style: normal;
+  font-weight: 400;
+  font-feature-settings: "ss03", "tnum", "zero";
+  src: url("/cogapp-temperature/fonts/civil/CivilPremium-Regular2.woff2") format("woff2");
+  font-display: optional;
+}
+@font-face {
+  font-family: Civil;
+  font-style: normal;
+  font-weight: 500;
+  font-feature-settings: "ss03", "tnum", "zero";
+  src: url("/cogapp-temperature/fonts/civil/CivilPremium-Medium2.woff2") format("woff2");
+  font-display: optional;
+}
+@font-face {
+  font-family: Civil;
+  font-style: normal;
+  font-weight: 600;
+  font-feature-settings: "ss03", "tnum", "zero";
+  src: url("/cogapp-temperature/fonts/civil/CivilPremium-SemiBold2.woff2") format("woff2");
+  font-display: optional;
+}
+
+@font-face {
+  font-family: "Civil fallback";
+  src: local("Helvetica Neue"), local("Arial");
+  size-adjust: 100%;
+  ascent-override: 95%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}
+
+@theme {
+  --font-sans: Civil, "Civil fallback", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Untitled serif", "Untitled serif fallback", Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --color-cream: #ebebe1;
+  --color-slate: #282828;
+  --color-grey: #595959;
+  --color-light-grey: #f6f6f7;
+  --color-pink: #ffdaea;
+  --color-green: #edffda;
+  --color-purple: #e8daff;
+  --color-blue: #dae9ff;
+  --color-focus: #227bff;
+}
+
+@layer base {
+  html,
+  body {
+    background: var(--color-cream);
+    color: var(--color-slate);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss03", "tnum", "zero";
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: var(--color-pink);
+    color: var(--color-slate);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

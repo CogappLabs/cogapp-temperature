@@ -1,0 +1,112 @@
+---
+import { buildChart } from "../lib/chart";
+import { RANGES, type Point } from "../lib/adafruit";
+
+interface Props {
+  id: string;
+  unit: string;
+  stroke: string;
+  fill: string;
+  points: Point[]; // initial (default range) data
+  defaultRange: string;
+  feedKey: string;
+}
+const { id, unit, stroke, fill, points, defaultRange, feedKey } = Astro.props;
+
+const W = 700;
+const H = 260;
+const OPTS = { w: W, h: H, padX: 52, padTop: 16, padBottom: 32, unit, xTicks: 5 };
+const chart = buildChart(points, OPTS);
+---
+
+<details class="mt-4 group" data-history={id} data-feed={feedKey} data-unit={unit}>
+  <summary
+    class="inline-flex items-center min-h-6 cursor-pointer select-none font-sans text-sm text-grey underline underline-offset-4 list-none marker:hidden"
+  >
+    <span class="group-open:hidden">Show history</span>
+    <span class="hidden group-open:inline">Hide history</span>
+  </summary>
+
+  <div class="mt-4">
+    <div class="flex flex-wrap gap-2 mb-3" role="group" aria-label="Time range">
+      {
+        RANGES.map((r) => (
+          <button
+            type="button"
+            data-range={r.key}
+            data-hours={r.hours}
+            aria-pressed={r.key === defaultRange ? "true" : "false"}
+            class="rounded-full border border-slate/20 px-3 py-1 text-sm font-sans transition-colors aria-pressed:bg-slate aria-pressed:text-cream hover:border-slate/50 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            {r.label}
+          </button>
+        ))
+      }
+    </div>
+
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      class="w-full h-auto block"
+      role="img"
+      aria-label={`History chart, ${chart.min.toFixed(1)} to ${chart.max.toFixed(1)} ${unit}`}
+      data-chart={id}
+      data-w={W}
+      data-h={H}
+      data-padx={OPTS.padX}
+      data-padtop={OPTS.padTop}
+      data-padbottom={OPTS.padBottom}
+    >
+      {
+        chart.yLabels.map((l) => (
+          <g>
+            <line
+              x1={OPTS.padX}
+              x2={W - OPTS.padX}
+              y1={l.y}
+              y2={l.y}
+              stroke="currentColor"
+              stroke-opacity="0.12"
+              stroke-width="1"
+            />
+            <text
+              data-ylabel
+              x={OPTS.padX - 6}
+              y={l.y}
+              text-anchor="end"
+              dominant-baseline="middle"
+              class="fill-slate text-[13px] font-mono"
+            >
+              {l.text}
+            </text>
+          </g>
+        ))
+      }
+      <path data-area d={chart.area} fill={fill} opacity="0.5"></path>
+      <path
+        data-line
+        d={chart.line}
+        fill="none"
+        stroke={stroke}
+        stroke-width="2"
+        stroke-linejoin="round"
+        stroke-linecap="round"></path>
+      {
+        chart.xLabels.map((l) => (
+          <text
+            data-xlabel
+            x={l.x}
+            y={H - 8}
+            text-anchor="middle"
+            class="fill-grey text-[11px] font-mono"
+          >
+            {l.text}
+          </text>
+        ))
+      }
+    </svg>
+
+    <p data-empty={id} class="hidden text-sm text-grey font-sans mt-2">
+      No data in this range yet.
+    </p>
+  </div>
+</details>

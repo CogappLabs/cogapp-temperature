@@ -1,0 +1,69 @@
+---
+import Sparkline from "./Sparkline.astro";
+import HistoryPanel from "./HistoryPanel.astro";
+import BandScale from "./BandScale.astro";
+import type { Band, Point, Segment } from "../lib/adafruit";
+
+interface Props {
+  id: string;
+  label: string;
+  latest: number;
+  unit: string;
+  band: Band;
+  points: Point[];
+  stroke: string;
+  fill: string;
+  feedKey: string;
+  historyPoints: Point[];
+  defaultRange: string;
+  scale: Segment[];
+}
+const {
+  id,
+  label,
+  latest,
+  unit,
+  band,
+  points,
+  stroke,
+  fill,
+  feedKey,
+  historyPoints,
+  defaultRange,
+  scale,
+} = Astro.props;
+
+const bg: Record<Band, string> = {
+  cold: "bg-blue",
+  cool: "bg-blue",
+  comfortable: "bg-green",
+  warm: "bg-pink",
+  hot: "bg-pink",
+};
+---
+
+<article
+  class={`${bg[band]} rounded-2xl p-[clamp(1rem,3vh,2rem)] flex flex-col gap-[clamp(0.5rem,1.5vh,1rem)]`}
+>
+  <h2 class="font-sans text-xs uppercase tracking-widest text-grey m-0">{label}</h2>
+  <div class="flex items-baseline gap-2">
+    <span
+      data-value={id}
+      class="font-serif leading-none tabular-nums text-[clamp(2.75rem,9vw,4.5rem)]"
+    >
+      {latest.toFixed(1)}
+    </span>
+    <span class="font-serif text-2xl text-grey">{unit}</span>
+  </div>
+  <BandScale id={id} segments={scale} current={band} unit={unit} />
+  <Sparkline points={points} stroke={stroke} fill={fill} unit={unit} id={id} />
+  <HistoryPanel
+    id={id}
+    unit={unit}
+    stroke={stroke}
+    fill={fill}
+    points={historyPoints}
+    defaultRange={defaultRange}
+    feedKey={feedKey}
+  />
+</article>

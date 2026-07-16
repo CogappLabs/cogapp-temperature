@@ -1,0 +1,49 @@
+---
+import type { Band, Segment } from "../lib/adafruit";
+
+interface Props {
+  id: string;
+  segments: Segment[];
+  current: Band;
+  unit: string;
+}
+const { id, segments, current, unit } = Astro.props;
+
+// Solid swatch colour per band. Comfortable = green, extremes = stronger tints.
+const swatch: Record<Band, string> = {
+  cold: "#dae9ff",
+  cool: "#eaf2ff",
+  comfortable: "#edffda",
+  warm: "#ffeaf2",
+  hot: "#ffdaea",
+};
+---
+
+<div class="mt-1 flex gap-1" data-scale={id} data-unit={unit}>
+  {
+    segments.map((s) => (
+      <div
+        data-seg={s.band}
+        class="seg flex-1 rounded-md py-1 px-0.5 text-center leading-tight text-slate"
+        style={`background:${swatch[s.band]}`}
+        aria-current={s.band === current ? "true" : undefined}
+      >
+        <span class="block font-sans text-[11px] font-semibold">{s.short}</span>
+        <span class="block font-mono text-[10px]">{s.range}</span>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  /* Inactive segments read at full contrast; the current one gains a ring. */
+  .seg {
+    transition: box-shadow 0.2s ease;
+  }
+  .seg:not([aria-current="true"]) {
+    filter: saturate(0.7);
+  }
+  .seg[aria-current="true"] {
+    box-shadow: inset 0 0 0 2px var(--color-slate);
+  }
+</style>

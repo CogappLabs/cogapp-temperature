@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.astro/
+.DS_Store
+*.log
+
+# Playwright MCP scratch + review screenshots
+.playwright-mcp/
+/*.png
