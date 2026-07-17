@@ -1,6 +1,7 @@
 // Live polling: refresh the reading cards on an interval, with a countdown
 // and a manual refresh button.
 import { type Band, FEEDS, getReading, humidityBand, type Point, tempBand } from "../lib/adafruit";
+import { getOutdoor } from "../lib/weather";
 
 const cardBg: Record<Band, string> = {
   comfortable: "bg-green",
@@ -82,6 +83,26 @@ async function refresh() {
   }
 }
 
+// The Brighton card is fetched independently of the office sensors so a
+// weather-API hiccup can't blank the office cards (or vice versa).
+async function refreshOutdoor() {
+  try {
+    const o = await getOutdoor();
+    const t = document.querySelector('[data-value="brighton-temperature"]');
+    const h = document.querySelector('[data-value="brighton-humidity"]');
+    if (t) t.textContent = o.temperature.toFixed(1);
+    if (h) h.textContent = o.humidity.toFixed(0);
+    const card = document.querySelector("[data-outdoor]");
+    if (card) {
+      card.classList.remove("bg-light-grey", "animate-pulse");
+      card.classList.add("bg-purple");
+      card.removeAttribute("aria-busy");
+    }
+  } catch (err) {
+    console.error("outdoor refresh failed", err);
+  }
+}
+
 function setOffline(offline: boolean) {
   const banner = document.querySelector<HTMLElement>("[data-offline]");
   if (banner) banner.hidden = !offline;
@@ -107,7 +128,7 @@ async function run() {
   remaining = INTERVAL;
   if (btn) btn.disabled = true;
   icon?.classList.add("animate-spin");
-  await refresh();
+  await Promise.all([refresh(), refreshOutdoor()]);
   icon?.classList.remove("animate-spin");
   if (btn) btn.disabled = false;
   remaining = INTERVAL;

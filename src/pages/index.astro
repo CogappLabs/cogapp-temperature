@@ -1,6 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import ReadingCard from "../components/ReadingCard.astro";
+import OutdoorCard from "../components/OutdoorCard.astro";
 import { FEEDS, TEMP_SCALE, HUMIDITY_SCALE } from "../lib/adafruit";
 
 // Nothing is fetched at build time: the page ships an empty placeholder and the
@@ -54,6 +55,7 @@ const DEFAULT_RANGE = "24h";
         defaultRange={DEFAULT_RANGE}
         scale={HUMIDITY_SCALE}
       />
+      <OutdoorCard />
     </div>
 
     <footer class="mt-8 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-grey font-mono">
@@ -90,6 +92,8 @@ const DEFAULT_RANGE = "24h";
           href="https://io.adafruit.com/tristanr/dashboards/cogapp-office-habitability"
           >Adafruit IO</a
         >
+        <span>{" "}&{" "}</span>
+        <a class="underline" href="https://open-meteo.com">Open-Meteo</a>
         <span>{" "}·{" "}</span>
         <a class="underline" href="https://github.com/CogappLabs/cogapp-temperature"
           >GitHub</a
