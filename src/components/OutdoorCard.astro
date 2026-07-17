@@ -1,0 +1,54 @@
+---
+// A single "outside" card showing current outdoor temperature and humidity
+// side by side. Unlike the office ReadingCards it has no band scale, sparkline
+// or history — just the two live numbers. Ships an empty pulsing placeholder;
+// live.ts fills the values and settles the background on first paint.
+//
+// Location and data source both come from src/lib/weather.ts, so swapping the
+// weather provider there updates this card's heading and attribution too.
+import { LOCATION, weather } from "../lib/weather";
+
+interface Props {
+  id?: string;
+}
+const { id = "brighton" } = Astro.props;
+
+const metrics = [
+  { key: "brighton-temperature", label: "Temperature", unit: "°C" },
+  { key: "brighton-humidity", label: "Humidity", unit: "%" },
+];
+---
+
+<article
+  data-outdoor={id}
+  class="bg-light-grey animate-pulse rounded-2xl p-[clamp(1rem,3vh,2rem)] flex flex-col gap-[clamp(0.5rem,1.5vh,1rem)] transition-colors"
+  aria-busy="true"
+>
+  <h2 class="font-sans text-xs uppercase tracking-widest text-grey m-0">
+    Outside · {LOCATION}
+  </h2>
+  <div class="flex flex-wrap gap-x-10 gap-y-4">
+    {
+      metrics.map((m) => (
+        <div>
+          <span class="block font-sans text-[11px] uppercase tracking-widest text-grey">
+            {m.label}
+          </span>
+          <span class="mt-1 flex items-baseline gap-2">
+            <span
+              data-value={m.key}
+              class="font-serif leading-none tabular-nums text-[clamp(2.75rem,9vw,4.5rem)]"
+            >
+              —
+            </span>
+            <span class="font-serif text-2xl text-grey">{m.unit}</span>
+          </span>
+        </div>
+      ))
+    }
+  </div>
+  <p class="font-mono text-xs text-grey m-0">
+    Data from{" "}
+    <a class="underline" href={weather.url} rel="noopener">{weather.name}</a>
+  </p>
+</article>
