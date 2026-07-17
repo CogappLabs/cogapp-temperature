@@ -27,10 +27,11 @@ Biome (lint + format) runs on staged files via Lefthook at pre-commit.
 
 ## How it works
 
-The page fetches both feeds at build time for the initial render, then a small
-client script re-polls every 60 seconds with a countdown and a manual refresh
-button. Each metric shows the current value, a comfort-band scale, a sparkline,
-and an expandable history chart. See `CLAUDE.md` for architecture detail.
+The page ships an empty placeholder, then a small client script fetches both
+feeds on load and re-polls every 60 seconds. A circular timer in the header
+drains to the next poll, next to a manual refresh button. Each metric shows
+the current value, a comfort-band scale, a sparkline, and an expandable history
+chart. See `CLAUDE.md` for architecture detail.
 
 The comfort thresholds are general office-comfort guesses, not Adafruit's own
 dashboard bands.

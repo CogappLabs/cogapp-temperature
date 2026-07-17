@@ -19,6 +19,11 @@ interface RawDatum {
   created_at: string;
 }
 
+interface ChartResponse {
+  columns: string[]; // ["date", "value"]
+  data: [string, string][]; // [isoTimestamp, value], oldest first
+}
+
 /** Latest N data points for a feed, oldest first. */
 export async function getHistory(feedKey: string, limit = 120): Promise<Point[]> {
   const res = await fetch(`${BASE}/${feedKey}/data?limit=${limit}`);
@@ -27,15 +32,19 @@ export async function getHistory(feedKey: string, limit = 120): Promise<Point[]>
   return raw.map((d) => ({ value: Number(d.value), at: d.created_at })).reverse();
 }
 
-/** Data points within the last `hours`, oldest first. Adafruit retains 30 days. */
+/**
+ * Data points within the last `hours`, oldest first. Adafruit retains 30 days.
+ *
+ * Uses the `/data/chart` endpoint rather than raw `/data`: the raw endpoint caps
+ * at 1000 rows per request, so a 24h window (~1440 readings at one a minute)
+ * loses the most recent ~3 hours. `/data/chart` downsamples server-side to a
+ * bounded set of buckets spanning the whole window, up to the present.
+ */
 export async function getHistoryRange(feedKey: string, hours: number): Promise<Point[]> {
-  const start = new Date(Date.now() - hours * 3600_000).toISOString();
-  const res = await fetch(
-    `${BASE}/${feedKey}/data?start_time=${encodeURIComponent(start)}&limit=10000`,
-  );
+  const res = await fetch(`${BASE}/${feedKey}/data/chart?hours=${hours}`);
   if (!res.ok) throw new Error(`Adafruit ${feedKey}: ${res.status}`);
-  const raw = (await res.json()) as RawDatum[];
-  return raw.map((d) => ({ value: Number(d.value), at: d.created_at })).reverse();
+  const { data } = (await res.json()) as ChartResponse;
+  return data.map(([at, value]) => ({ value: Number(value), at }));
 }
 
 export const RANGES = [

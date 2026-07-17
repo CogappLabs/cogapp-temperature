@@ -7,10 +7,11 @@
 // and settles the background, and outdoor-history.ts draws the charts lazily
 // when the panel is first opened.
 //
-// Location and data source both come from src/lib/weather.ts, so swapping the
-// weather provider there updates this card's heading and attribution too.
+// Location comes from src/lib/weather.ts, so swapping the weather provider there
+// updates this card's heading too. The provider attribution lives in the page
+// footer (see index.astro).
 import { RANGES } from "../lib/adafruit";
-import { LOCATION, weather } from "../lib/weather";
+import { LOCATION } from "../lib/weather";
 
 interface Props {
   id?: string;
@@ -71,7 +72,7 @@ const metrics = [
 
   <details class="group" data-outdoor-history={id}>
     <summary
-      class="inline-flex items-center min-h-6 cursor-pointer select-none font-sans text-sm text-grey underline underline-offset-4 list-none marker:hidden"
+      class="flex justify-end items-center min-h-6 cursor-pointer select-none font-sans text-sm text-grey underline underline-offset-4 list-none marker:hidden"
     >
       <span class="group-open:hidden">Show history</span>
       <span class="hidden group-open:inline">Hide history</span>
@@ -131,9 +132,4 @@ const metrics = [
       }
     </div>
   </details>
-
-  <p class="font-mono text-xs text-grey m-0">
-    Data from{" "}
-    <a class="underline" href={weather.url} rel="noopener">{weather.name}</a>
-  </p>
 </article>

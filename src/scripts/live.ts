@@ -1,5 +1,5 @@
-// Live polling: refresh the reading cards on an interval, with a countdown
-// and a manual refresh button.
+// Live polling: refresh the reading cards on an interval, with a circular timer
+// ring that drains to the next poll and a manual refresh button.
 import { type Band, FEEDS, getReading, humidityBand, type Point, tempBand } from "../lib/adafruit";
 import { weather } from "../lib/weather";
 
@@ -38,15 +38,21 @@ function swapBg(el: Element | null, band: Band) {
   el.classList.add(cardBg[band]);
 }
 
-function updateCard(id: string, latest: number, band: Band, points: Point[]) {
+function updateCard(id: string, unit: string, latest: number, band: Band, points: Point[]) {
   const val = document.querySelector(`[data-value="${id}"]`);
   if (val) val.textContent = latest.toFixed(1);
   swapBg(document.querySelector(`[data-value="${id}"]`)?.closest("article") ?? null, band);
 
-  const { line, area } = sparkPaths(points);
+  const { line, area, min, max } = sparkPaths(points);
   const svg = document.querySelector(`[data-spark="${id}"]`);
   svg?.querySelector("[data-line]")?.setAttribute("d", line);
   svg?.querySelector("[data-area]")?.setAttribute("d", area);
+  // Keep the sparkline's accessible name in sync; server render ships a
+  // "loading" label because no data exists at build time.
+  svg?.setAttribute(
+    "aria-label",
+    `Past 2 hours, ranging ${min.toFixed(1)} to ${max.toFixed(1)} ${unit}`,
+  );
 
   const scale = document.querySelector(`[data-scale="${id}"]`);
   scale?.querySelectorAll("[data-seg]").forEach((seg) => {
@@ -63,8 +69,8 @@ async function refresh() {
     ]);
     const tBand = tempBand(temp.latest);
     const hBand = humidityBand(hum.latest);
-    updateCard("temperature", temp.latest, tBand, temp.history);
-    updateCard("humidity", hum.latest, hBand, hum.history);
+    updateCard("temperature", "°C", temp.latest, tBand, temp.history);
+    updateCard("humidity", "%", hum.latest, hBand, hum.history);
 
     const updated = new Date(Math.max(new Date(temp.at).getTime(), new Date(hum.at).getTime()));
     const timeEl = document.querySelector("[data-updated]");
@@ -107,12 +113,21 @@ function setOffline(offline: boolean) {
 const INTERVAL = 60; // seconds between auto-refreshes
 const btn = document.querySelector<HTMLButtonElement>("[data-refresh]");
 const icon = document.querySelector<SVGElement>("[data-refresh-icon]");
-const countdownEl = document.querySelector<HTMLElement>("[data-countdown]");
+const timer = document.querySelector<HTMLElement>("[data-timer]");
+const ring = document.querySelector<SVGCircleElement>("[data-timer-ring]");
+const RING_CIRCUMFERENCE = 2 * Math.PI * 10; // r=10 in the timer SVG
 let remaining = INTERVAL;
+
+// The ring drains as time elapses: full at reset, empty when due.
+function drawRing() {
+  const fraction = Math.max(remaining, 0) / INTERVAL;
+  if (ring) ring.style.strokeDashoffset = String(RING_CIRCUMFERENCE * (1 - fraction));
+  timer?.setAttribute("aria-label", `Next refresh in ${Math.max(remaining, 0)}s`);
+}
 
 function tick() {
   remaining -= 1;
-  if (countdownEl) countdownEl.textContent = String(Math.max(remaining, 0));
+  drawRing();
   if (remaining <= 0) void run();
 }
 
@@ -129,7 +144,7 @@ async function run() {
   if (btn) btn.disabled = false;
   remaining = INTERVAL;
   inFlight = false;
-  if (countdownEl) countdownEl.textContent = String(INTERVAL);
+  drawRing();
 }
 
 btn?.addEventListener("click", () => void run());
