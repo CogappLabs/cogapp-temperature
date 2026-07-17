@@ -57,9 +57,10 @@ markup, keep these hooks in sync with the scripts that read them.
 Chart geometry lives in `src/lib/chart.ts` (`buildChart` → SVG path + axis labels),
 shared by the server render and the client redraw so both produce identical charts.
 The small sparkline has its own inline path maths duplicated in `Sparkline.astro`
-and `live.ts`, so the `W/H/PAD` constants must match between them. The sparkline is
-the last 120 readings — two hours, since Adafruit logs once a minute — and is
-labelled as such (it has no min/max readout).
+and `live.ts`, so the `W/H/PAD/PADL` constants must match between them (`PADL` is
+the left gutter for its y-axis labels). The sparkline is the last 120 readings,
+two hours since Adafruit logs once a minute, and carries a small min/mid/max
+y-axis scale down the left edge.
 
 Comfort bands (`tempBand`, `humidityBand`, `TEMP_SCALE`, `HUMIDITY_SCALE`) are
 invented office-comfort thresholds, **not** Adafruit's dashboard values. If real
