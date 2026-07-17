@@ -14,20 +14,42 @@ const cardBg: Record<Band, string> = {
 const W = 600;
 const H = 110;
 const PAD = 8;
+// Left gutter for the y-axis labels; must match Sparkline.astro.
+const PADL = 44;
+const SVG_NS = "http://www.w3.org/2000/svg";
 
 function sparkPaths(points: Point[]) {
   const vals = points.map((p) => p.value);
   const min = Math.min(...vals);
   const max = Math.max(...vals);
   const range = max - min || 1;
-  const stepX = (W - PAD * 2) / Math.max(points.length - 1, 1);
+  const stepX = (W - PADL - PAD) / Math.max(points.length - 1, 1);
   const y = (v: number) => H - PAD - ((v - min) / range) * (H - PAD * 2);
-  const coords = points.map((p, i) => [PAD + i * stepX, y(p.value)] as const);
+  const coords = points.map((p, i) => [PADL + i * stepX, y(p.value)] as const);
   const line = coords
     .map(([x, yy], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${yy.toFixed(1)}`)
     .join(" ");
   const area = `${line} L${coords[coords.length - 1][0].toFixed(1)},${H - PAD} L${coords[0][0].toFixed(1)},${H - PAD} Z`;
   return { line, area, min, max };
+}
+
+// Redraw the sparkline's y-axis labels (max/mid/min) to match sparkPaths.
+function drawSparkLabels(svg: Element, min: number, max: number, unit: string) {
+  svg.querySelectorAll("[data-ylabel]").forEach((n) => {
+    n.remove();
+  });
+  const range = max - min || 1;
+  for (const v of [max, (max + min) / 2, min]) {
+    const t = document.createElementNS(SVG_NS, "text");
+    t.setAttribute("data-ylabel", "");
+    t.setAttribute("x", String(PADL - 6));
+    t.setAttribute("y", String(H - PAD - ((v - min) / range) * (H - PAD * 2)));
+    t.setAttribute("text-anchor", "end");
+    t.setAttribute("dominant-baseline", "middle");
+    t.setAttribute("class", "fill-slate text-[11px] font-mono");
+    t.textContent = `${v.toFixed(1)}${unit}`;
+    svg.appendChild(t);
+  }
 }
 
 function swapBg(el: Element | null, band: Band) {
@@ -47,6 +69,7 @@ function updateCard(id: string, unit: string, latest: number, band: Band, points
   const svg = document.querySelector(`[data-spark="${id}"]`);
   svg?.querySelector("[data-line]")?.setAttribute("d", line);
   svg?.querySelector("[data-area]")?.setAttribute("d", area);
+  if (svg) drawSparkLabels(svg, min, max, unit);
   // Keep the sparkline's accessible name in sync; server render ships a
   // "loading" label because no data exists at build time.
   svg?.setAttribute(
