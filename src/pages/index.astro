@@ -1,32 +1,12 @@
 ---
 import Base from "../layouts/Base.astro";
 import ReadingCard from "../components/ReadingCard.astro";
-import {
-  FEEDS,
-  getReading,
-  getHistoryRange,
-  tempBand,
-  humidityBand,
-  TEMP_SCALE,
-  HUMIDITY_SCALE,
-} from "../lib/adafruit";
+import { FEEDS, TEMP_SCALE, HUMIDITY_SCALE } from "../lib/adafruit";
 
+// Nothing is fetched at build time: the page ships an empty placeholder and the
+// client scripts fetch live data on load. This avoids baking a stale snapshot
+// (the readings as they were when the site was last built) into the HTML.
 const DEFAULT_RANGE = "24h";
-const DEFAULT_HOURS = 24;
-
-const [temp, hum, tempHist, humHist] = await Promise.all([
-  getReading(FEEDS.temperature),
-  getReading(FEEDS.humidity),
-  getHistoryRange(FEEDS.temperature, DEFAULT_HOURS),
-  getHistoryRange(FEEDS.humidity, DEFAULT_HOURS),
-]);
-
-const tBand = tempBand(temp.latest);
-const hBand = humidityBand(hum.latest);
-
-const updated = new Date(
-  Math.max(new Date(temp.at).getTime(), new Date(hum.at).getTime()),
-);
 ---
 
 <Base title="Cogapp office habitability">
@@ -50,35 +30,27 @@ const updated = new Date(
       hidden
       class="rounded-xl bg-slate px-4 py-2 text-center font-sans text-sm text-cream"
     >
-      Can’t reach the sensors. Showing the last known readings.
+      Can’t reach the sensors right now. Retrying shortly.
     </p>
 
     <div class="grid gap-[clamp(0.75rem,2vh,1.5rem)]">
       <ReadingCard
         id="temperature"
         label="Temperature"
-        latest={temp.latest}
         unit="°C"
-        band={tBand}
-        points={temp.history}
         stroke="#c0392b"
         fill="#ffdaea"
         feedKey={FEEDS.temperature}
-        historyPoints={tempHist}
         defaultRange={DEFAULT_RANGE}
         scale={TEMP_SCALE}
       />
       <ReadingCard
         id="humidity"
         label="Humidity"
-        latest={hum.latest}
         unit="%"
-        band={hBand}
-        points={hum.history}
         stroke="#2471a3"
         fill="#dae9ff"
         feedKey={FEEDS.humidity}
-        historyPoints={humHist}
         defaultRange={DEFAULT_RANGE}
         scale={HUMIDITY_SCALE}
       />
@@ -111,9 +83,7 @@ const updated = new Date(
       <span>Next in <span data-countdown class="tabular-nums">60</span>s</span>
       <span class="basis-full sm:basis-auto">
         <span>Updated{" "}</span>
-        <time data-updated datetime={updated.toISOString()}>
-          {updated.toLocaleTimeString("en-GB")}
-        </time>
+        <time data-updated>—</time>
         <span>{" "}· Data from{" "}</span>
         <a
           class="underline"

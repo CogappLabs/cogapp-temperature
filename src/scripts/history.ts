@@ -105,4 +105,14 @@ for (const panel of document.querySelectorAll<HTMLDetailsElement>("[data-history
       void select(btn, svg, emptyMsg);
     });
   }
+
+  // The chart ships empty (no build-time data), so load the default range the
+  // first time the panel is opened.
+  let loaded = false;
+  panel.addEventListener("toggle", () => {
+    if (!panel.open || loaded) return;
+    loaded = true;
+    const initial = buttons.find((b) => b.getAttribute("aria-pressed") === "true") ?? buttons[0];
+    if (initial) void select(initial, svg, emptyMsg);
+  });
 }
