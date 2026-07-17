@@ -1,7 +1,7 @@
 // Live polling: refresh the reading cards on an interval, with a countdown
 // and a manual refresh button.
 import { type Band, FEEDS, getReading, humidityBand, type Point, tempBand } from "../lib/adafruit";
-import { getOutdoor } from "../lib/weather";
+import { weather } from "../lib/weather";
 
 const cardBg: Record<Band, string> = {
   comfortable: "bg-green",
@@ -87,7 +87,7 @@ async function refresh() {
 // weather-API hiccup can't blank the office cards (or vice versa).
 async function refreshOutdoor() {
   try {
-    const o = await getOutdoor();
+    const o = await weather.getCurrent();
     const t = document.querySelector('[data-value="brighton-temperature"]');
     const h = document.querySelector('[data-value="brighton-humidity"]');
     if (t) t.textContent = o.temperature.toFixed(1);

@@ -1,8 +1,13 @@
 ---
-// A single "outside" card showing current Brighton temperature and humidity
+// A single "outside" card showing current outdoor temperature and humidity
 // side by side. Unlike the office ReadingCards it has no band scale, sparkline
 // or history — just the two live numbers. Ships an empty pulsing placeholder;
 // live.ts fills the values and settles the background on first paint.
+//
+// Location and data source both come from src/lib/weather.ts, so swapping the
+// weather provider there updates this card's heading and attribution too.
+import { LOCATION, weather } from "../lib/weather";
+
 interface Props {
   id?: string;
 }
@@ -20,7 +25,7 @@ const metrics = [
   aria-busy="true"
 >
   <h2 class="font-sans text-xs uppercase tracking-widest text-grey m-0">
-    Outside · Brighton
+    Outside · {LOCATION}
   </h2>
   <div class="flex flex-wrap gap-x-10 gap-y-4">
     {
@@ -42,4 +47,8 @@ const metrics = [
       ))
     }
   </div>
+  <p class="font-mono text-xs text-grey m-0">
+    Data from{" "}
+    <a class="underline" href={weather.url} rel="noopener">{weather.name}</a>
+  </p>
 </article>
