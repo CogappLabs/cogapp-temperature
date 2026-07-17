@@ -15,6 +15,7 @@ const H = 110;
 const PAD = 8;
 
 function buildPaths(pts: Point[]) {
+  if (pts.length === 0) return { line: "", area: "", min: null, max: null };
   const vals = pts.map((p) => p.value);
   const min = Math.min(...vals);
   const max = Math.max(...vals);
@@ -28,6 +29,10 @@ function buildPaths(pts: Point[]) {
 }
 
 const { line, area, min, max } = buildPaths(points);
+const label =
+  min == null || max == null
+    ? "Recent history, loading"
+    : `Recent history, ranging ${min.toFixed(1)} to ${max.toFixed(1)} ${unit}`;
 ---
 
 <figure class="m-0">
@@ -35,7 +40,7 @@ const { line, area, min, max } = buildPaths(points);
     viewBox={`0 0 ${W} ${H}`}
     class="w-full h-auto block"
     role="img"
-    aria-label={`Recent history, ranging ${min.toFixed(1)} to ${max.toFixed(1)} ${unit}`}
+    aria-label={label}
     data-spark={id}
     data-w={W}
     data-h={H}
@@ -45,7 +50,7 @@ const { line, area, min, max } = buildPaths(points);
     <path data-line d={line} fill="none" stroke={stroke} stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></path>
   </svg>
   <figcaption class="flex justify-between text-xs text-grey mt-1 font-mono">
-    <span data-spark-min={id}>Low {min.toFixed(1)}{unit}</span>
-    <span data-spark-max={id}>High {max.toFixed(1)}{unit}</span>
+    <span data-spark-min={id}>Low {min == null ? "—" : `${min.toFixed(1)}${unit}`}</span>
+    <span data-spark-max={id}>High {max == null ? "—" : `${max.toFixed(1)}${unit}`}</span>
   </figcaption>
 </figure>

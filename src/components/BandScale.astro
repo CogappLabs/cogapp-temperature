@@ -4,7 +4,7 @@ import type { Band, Segment } from "../lib/adafruit";
 interface Props {
   id: string;
   segments: Segment[];
-  current: Band;
+  current?: Band;
   unit: string;
 }
 const { id, segments, current, unit } = Astro.props;

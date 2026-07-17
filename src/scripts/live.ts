@@ -31,7 +31,9 @@ function sparkPaths(points: Point[]) {
 
 function swapBg(el: Element | null, band: Band) {
   if (!el) return;
-  el.classList.remove("bg-green", "bg-blue", "bg-pink");
+  // Clear the loading placeholder state on first paint of real data.
+  el.classList.remove("bg-green", "bg-blue", "bg-pink", "bg-light-grey", "animate-pulse");
+  el.removeAttribute("aria-busy");
   el.classList.add(cardBg[band]);
 }
 
@@ -115,3 +117,7 @@ async function run() {
 
 btn?.addEventListener("click", () => void run());
 setInterval(tick, 1000);
+
+// Fetch immediately on load: the page ships with a placeholder, so the first
+// paint of real data comes from here rather than from build-time HTML.
+void run();

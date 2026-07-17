@@ -16,7 +16,9 @@ const { id, unit, stroke, fill, points, defaultRange, feedKey } = Astro.props;
 const W = 700;
 const H = 260;
 const OPTS = { w: W, h: H, padX: 52, padTop: 16, padBottom: 32, unit, xTicks: 5 };
-const chart = buildChart(points, OPTS);
+// With no build-time data the chart starts empty; the client draws it lazily
+// the first time the panel is opened.
+const chart = points.length ? buildChart(points, OPTS) : null;
 ---
 
 <details class="mt-4 group" data-history={id} data-feed={feedKey} data-unit={unit}>
@@ -48,7 +50,11 @@ const chart = buildChart(points, OPTS);
       viewBox={`0 0 ${W} ${H}`}
       class="w-full h-auto block"
       role="img"
-      aria-label={`History chart, ${chart.min.toFixed(1)} to ${chart.max.toFixed(1)} ${unit}`}
+      aria-label={
+        chart
+          ? `History chart, ${chart.min.toFixed(1)} to ${chart.max.toFixed(1)} ${unit}`
+          : "History chart, loading"
+      }
       data-chart={id}
       data-w={W}
       data-h={H}
@@ -57,7 +63,7 @@ const chart = buildChart(points, OPTS);
       data-padbottom={OPTS.padBottom}
     >
       {
-        chart.yLabels.map((l) => (
+        chart?.yLabels.map((l) => (
           <g>
             <line
               x1={OPTS.padX}
@@ -81,17 +87,17 @@ const chart = buildChart(points, OPTS);
           </g>
         ))
       }
-      <path data-area d={chart.area} fill={fill} opacity="0.5"></path>
+      <path data-area d={chart?.area ?? ""} fill={fill} opacity="0.5"></path>
       <path
         data-line
-        d={chart.line}
+        d={chart?.line ?? ""}
         fill="none"
         stroke={stroke}
         stroke-width="2"
         stroke-linejoin="round"
         stroke-linecap="round"></path>
       {
-        chart.xLabels.map((l) => (
+        chart?.xLabels.map((l) => (
           <text
             data-xlabel
             x={l.x}

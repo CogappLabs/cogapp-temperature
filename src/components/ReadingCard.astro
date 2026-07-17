@@ -7,30 +7,32 @@ import type { Band, Point, Segment } from "../lib/adafruit";
 interface Props {
   id: string;
   label: string;
-  latest: number;
   unit: string;
-  band: Band;
-  points: Point[];
   stroke: string;
   fill: string;
   feedKey: string;
-  historyPoints: Point[];
   defaultRange: string;
   scale: Segment[];
+  // Data props are optional: when omitted the card renders a loading
+  // placeholder and the client scripts fill it in once the live fetch lands.
+  latest?: number;
+  band?: Band;
+  points?: Point[];
+  historyPoints?: Point[];
 }
 const {
   id,
   label,
-  latest,
   unit,
-  band,
-  points,
   stroke,
   fill,
   feedKey,
-  historyPoints,
   defaultRange,
   scale,
+  latest,
+  band,
+  points = [],
+  historyPoints = [],
 } = Astro.props;
 
 const bg: Record<Band, string> = {
@@ -40,10 +42,14 @@ const bg: Record<Band, string> = {
   warm: "bg-pink",
   hot: "bg-pink",
 };
+
+// No band yet means we're still loading: a neutral, gently pulsing card.
+const cardClass = band ? bg[band] : "bg-light-grey animate-pulse";
 ---
 
 <article
-  class={`${bg[band]} rounded-2xl p-[clamp(1rem,3vh,2rem)] flex flex-col gap-[clamp(0.5rem,1.5vh,1rem)]`}
+  class={`${cardClass} rounded-2xl p-[clamp(1rem,3vh,2rem)] flex flex-col gap-[clamp(0.5rem,1.5vh,1rem)] transition-colors`}
+  aria-busy={band ? undefined : "true"}
 >
   <h2 class="font-sans text-xs uppercase tracking-widest text-grey m-0">{label}</h2>
   <div class="flex items-baseline gap-2">
@@ -51,7 +57,7 @@ const bg: Record<Band, string> = {
       data-value={id}
       class="font-serif leading-none tabular-nums text-[clamp(2.75rem,9vw,4.5rem)]"
     >
-      {latest.toFixed(1)}
+      {latest != null ? latest.toFixed(1) : "—"}
     </span>
     <span class="font-serif text-2xl text-grey">{unit}</span>
   </div>
