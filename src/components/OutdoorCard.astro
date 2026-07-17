@@ -19,6 +19,10 @@ const { id = "brighton" } = Astro.props;
 
 const DEFAULT_RANGE = "24h";
 
+// Open-Meteo history is hourly, so sub-day ranges would show only a handful of
+// points. Offer only the ranges that read accurately at hourly resolution.
+const OUTDOOR_RANGES = RANGES.filter((r) => r.hours >= 24);
+
 // Chart geometry (kept identical to the office HistoryPanel so both read the
 // same). draw.ts reads these back off the data-* attributes.
 const W = 700;
@@ -76,7 +80,7 @@ const metrics = [
     <div class="mt-4 flex flex-col gap-6">
       <div class="flex flex-wrap gap-2" role="group" aria-label="Time range">
         {
-          RANGES.map((r) => (
+          OUTDOOR_RANGES.map((r) => (
             <button
               type="button"
               data-range={r.key}
