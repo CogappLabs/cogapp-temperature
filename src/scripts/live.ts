@@ -38,19 +38,15 @@ function swapBg(el: Element | null, band: Band) {
   el.classList.add(cardBg[band]);
 }
 
-function updateCard(id: string, latest: number, unit: string, band: Band, points: Point[]) {
+function updateCard(id: string, latest: number, band: Band, points: Point[]) {
   const val = document.querySelector(`[data-value="${id}"]`);
   if (val) val.textContent = latest.toFixed(1);
   swapBg(document.querySelector(`[data-value="${id}"]`)?.closest("article") ?? null, band);
 
-  const { line, area, min, max } = sparkPaths(points);
+  const { line, area } = sparkPaths(points);
   const svg = document.querySelector(`[data-spark="${id}"]`);
   svg?.querySelector("[data-line]")?.setAttribute("d", line);
   svg?.querySelector("[data-area]")?.setAttribute("d", area);
-  const minEl = document.querySelector(`[data-spark-min="${id}"]`);
-  const maxEl = document.querySelector(`[data-spark-max="${id}"]`);
-  if (minEl) minEl.textContent = `Low ${min.toFixed(1)}${unit}`;
-  if (maxEl) maxEl.textContent = `High ${max.toFixed(1)}${unit}`;
 
   const scale = document.querySelector(`[data-scale="${id}"]`);
   scale?.querySelectorAll("[data-seg]").forEach((seg) => {
@@ -67,8 +63,8 @@ async function refresh() {
     ]);
     const tBand = tempBand(temp.latest);
     const hBand = humidityBand(hum.latest);
-    updateCard("temperature", temp.latest, "°C", tBand, temp.history);
-    updateCard("humidity", hum.latest, "%", hBand, hum.history);
+    updateCard("temperature", temp.latest, tBand, temp.history);
+    updateCard("humidity", hum.latest, hBand, hum.history);
 
     const updated = new Date(Math.max(new Date(temp.at).getTime(), new Date(hum.at).getTime()));
     const timeEl = document.querySelector("[data-updated]");
