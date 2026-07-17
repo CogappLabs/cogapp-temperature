@@ -1,0 +1,32 @@
+{
+  "id": "/cogapp-temperature/",
+  "name": "Cogapp office habitability",
+  "short_name": "Office temp",
+  "description": "Live temperature and humidity in the Cogapp office.",
+  "start_url": "/cogapp-temperature/",
+  "scope": "/cogapp-temperature/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ebebe1",
+  "theme_color": "#ebebe1",
+  "icons": [
+    {
+      "src": "/cogapp-temperature/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/cogapp-temperature/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/cogapp-temperature/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

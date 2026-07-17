@@ -77,9 +77,32 @@ so don't lighten it. The band scale keeps full-contrast text and signals the
 inactive state via background `saturate()`, not text opacity. Re-run
 `scripts/axe-check.mjs` after visual changes.
 
+## PWA / install to home screen
+
+The site is an installable PWA. `public/manifest.webmanifest` (linked from
+`Base.astro`, along with the `theme-color` and `apple-touch-icon`/apple meta
+tags) declares the app; `public/sw.js` is a service worker registered by an
+inline script in `Base.astro`. The SW precaches the app shell and does
+stale-while-revalidate for same-origin assets, but deliberately **passes
+cross-origin requests (Adafruit IO, Open-Meteo) straight to the network** so live
+readings never come from the cache. Bump `VERSION` in `sw.js` to force clients
+onto a new cache.
+
+PNG icons (`public/icon-192.png`, `icon-512.png`, `icon-maskable-512.png`,
+`apple-touch-icon.png`) are generated from `public/favicon.svg` and
+`scripts/icon-source-maskable.svg` by `node scripts/gen-icons.mjs` (headless
+Chromium via Playwright) — re-run it if either source changes. The maskable
+source keeps the artwork inside the centre ~60% safe zone on a full-bleed
+background.
+
+The manifest's `start_url`, `scope`, `id`, and icon `src`s hardcode the
+`/cogapp-temperature/` base path (static `public/` files aren't rewritten by
+Astro), so they belong in the list below.
+
 ## Deploy
 
 `.github/workflows/deploy.yml` builds with `withastro/action` and publishes to
 GitHub Pages on push to `main`. `astro.config.mjs` sets `site` +
 `base: "/cogapp-temperature"`; changing the repo name means updating the base,
-the CSS font paths, and the footer GitHub link.
+the CSS font paths, the footer GitHub link, and the base-path references in
+`public/manifest.webmanifest`.
