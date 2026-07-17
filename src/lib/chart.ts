@@ -42,30 +42,63 @@ export function buildChart(points: Point[], o: ChartOpts): ChartGeom {
   const range = max - min || 1;
 
   const n = points.length;
-  const x = (i: number) => o.padX + (n <= 1 ? innerW / 2 : (i / (n - 1)) * innerW);
+  const times = points.map((p) => new Date(p.at).getTime());
+  const t0 = times[0] ?? 0;
+  const tLast = times[n - 1] ?? t0;
+  const tSpan = tLast - t0 || 1;
+  // Position points by time, not index, so gaps in the data read as horizontal
+  // empty space rather than a compressed near-vertical line.
+  const x = (i: number) => o.padX + (n <= 1 ? innerW / 2 : ((times[i] - t0) / tSpan) * innerW);
   const y = (v: number) => o.padTop + innerH - ((v - min) / range) * innerH;
 
   const coords = points.map((p, i) => [x(i), y(p.value)] as const);
-  const line = coords
-    .map(([xx, yy], i) => `${i === 0 ? "M" : "L"}${xx.toFixed(1)},${yy.toFixed(1)}`)
-    .join(" ");
-  const baseY = o.padTop + innerH;
-  const area =
-    coords.length > 0
-      ? `${line} L${coords[coords.length - 1][0].toFixed(1)},${baseY} L${coords[0][0].toFixed(1)},${baseY} Z`
-      : "";
 
-  // X labels
-  const first = points[0]?.at;
-  const last = points[points.length - 1]?.at;
-  const spanHours =
-    first && last ? (new Date(last).getTime() - new Date(first).getTime()) / 3600_000 : 0;
+  // Break the line where consecutive readings are more than a few times the
+  // typical sampling interval apart, so a sensor dropout shows as a gap instead
+  // of a straight line drawn across it.
+  const gaps = times.slice(1).map((t, i) => t - times[i]);
+  const sorted = [...gaps].sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)] ?? 0;
+  const gapThreshold = median > 0 ? median * 4 : Number.POSITIVE_INFINITY;
+
+  let line = "";
+  for (let i = 0; i < coords.length; i++) {
+    const [xx, yy] = coords[i];
+    const startSegment = i === 0 || times[i] - times[i - 1] > gapThreshold;
+    line += `${startSegment ? "M" : "L"}${xx.toFixed(1)},${yy.toFixed(1)} `;
+  }
+  line = line.trimEnd();
+
+  // Fill the area under each unbroken segment separately, so gaps stay empty.
+  const baseY = o.padTop + innerH;
+  const areaParts: string[] = [];
+  let segStart = 0;
+  for (let i = 1; i <= coords.length; i++) {
+    const isBreak = i === coords.length || times[i] - times[i - 1] > gapThreshold;
+    if (isBreak) {
+      const seg = coords.slice(segStart, i);
+      if (seg.length > 0) {
+        const pathTop = seg
+          .map(([xx, yy], j) => `${j === 0 ? "M" : "L"}${xx.toFixed(1)},${yy.toFixed(1)}`)
+          .join(" ");
+        areaParts.push(
+          `${pathTop} L${seg[seg.length - 1][0].toFixed(1)},${baseY} L${seg[0][0].toFixed(1)},${baseY} Z`,
+        );
+      }
+      segStart = i;
+    }
+  }
+  const area = areaParts.join(" ");
+
+  // X labels, positioned by time across the window.
+  const spanHours = tSpan / 3600_000;
   const xTicks = Math.min(o.xTicks ?? 4, Math.max(n, 1));
   const xLabels: ChartGeom["xLabels"] = [];
   for (let t = 0; t < xTicks; t++) {
-    const idx = xTicks === 1 ? 0 : Math.round((t / (xTicks - 1)) * (n - 1));
-    const p = points[idx];
-    if (p) xLabels.push({ x: x(idx), text: fmtTime(p.at, spanHours) });
+    const frac = xTicks === 1 ? 0 : t / (xTicks - 1);
+    const tickTime = t0 + frac * tSpan;
+    const px = o.padX + (n <= 1 ? innerW / 2 : frac * innerW);
+    xLabels.push({ x: px, text: fmtTime(new Date(tickTime).toISOString(), spanHours) });
   }
 
   // Y labels: min, mid, max of the real data range
