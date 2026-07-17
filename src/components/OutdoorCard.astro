@@ -1,11 +1,15 @@
 ---
 // A single "outside" card showing current outdoor temperature and humidity
-// side by side. Unlike the office ReadingCards it has no band scale, sparkline
-// or history — just the two live numbers. Ships an empty pulsing placeholder;
-// live.ts fills the values and settles the background on first paint.
+// side by side. Unlike the office ReadingCards it has no band scale or
+// sparkline, but it does carry its own history panel: an expandable pair of
+// charts (temperature + humidity) with the same range buttons as the office
+// cards. Ships an empty pulsing placeholder; live.ts fills the current values
+// and settles the background, and outdoor-history.ts draws the charts lazily
+// when the panel is first opened.
 //
 // Location and data source both come from src/lib/weather.ts, so swapping the
 // weather provider there updates this card's heading and attribution too.
+import { RANGES } from "../lib/adafruit";
 import { LOCATION, weather } from "../lib/weather";
 
 interface Props {
@@ -13,9 +17,22 @@ interface Props {
 }
 const { id = "brighton" } = Astro.props;
 
+const DEFAULT_RANGE = "24h";
+
+// Chart geometry (kept identical to the office HistoryPanel so both read the
+// same). draw.ts reads these back off the data-* attributes.
+const W = 700;
+const H = 260;
+const PADX = 52;
+const PADTOP = 16;
+const PADBOTTOM = 32;
+
+// The two outdoor metrics, shown as live numbers up top and as history charts
+// in the panel below. Charts reuse the office temperature/humidity colours so
+// red still means temperature and blue still means humidity across the page.
 const metrics = [
-  { key: "brighton-temperature", label: "Temperature", unit: "°C" },
-  { key: "brighton-humidity", label: "Humidity", unit: "%" },
+  { key: "brighton-temperature", label: "Temperature", unit: "°C", stroke: "#c0392b", fill: "#ffdaea" },
+  { key: "brighton-humidity", label: "Humidity", unit: "%", stroke: "#2471a3", fill: "#dae9ff" },
 ];
 ---
 
@@ -47,6 +64,70 @@ const metrics = [
       ))
     }
   </div>
+
+  <details class="group" data-outdoor-history={id}>
+    <summary
+      class="inline-flex items-center min-h-6 cursor-pointer select-none font-sans text-sm text-grey underline underline-offset-4 list-none marker:hidden"
+    >
+      <span class="group-open:hidden">Show history</span>
+      <span class="hidden group-open:inline">Hide history</span>
+    </summary>
+
+    <div class="mt-4 flex flex-col gap-6">
+      <div class="flex flex-wrap gap-2" role="group" aria-label="Time range">
+        {
+          RANGES.map((r) => (
+            <button
+              type="button"
+              data-range={r.key}
+              data-hours={r.hours}
+              aria-pressed={r.key === DEFAULT_RANGE ? "true" : "false"}
+              class="rounded-full border border-slate/20 px-3 py-1 text-sm font-sans transition-colors aria-pressed:bg-slate aria-pressed:text-cream hover:border-slate/50 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              {r.label}
+            </button>
+          ))
+        }
+      </div>
+
+      {
+        metrics.map((m) => (
+          <div>
+            <h3 class="font-sans text-[11px] uppercase tracking-widest text-grey m-0 mb-1">
+              {m.label}
+            </h3>
+            <svg
+              viewBox={`0 0 ${W} ${H}`}
+              class="w-full h-auto block"
+              role="img"
+              aria-label={`Outdoor ${m.label.toLowerCase()} history, loading`}
+              data-chart={m.key}
+              data-w={W}
+              data-h={H}
+              data-padx={PADX}
+              data-padtop={PADTOP}
+              data-padbottom={PADBOTTOM}
+            >
+              <path data-area d="" fill={m.fill} opacity="0.5" />
+              <path
+                data-line
+                d=""
+                fill="none"
+                stroke={m.stroke}
+                stroke-width="2"
+                stroke-linejoin="round"
+                stroke-linecap="round"
+              />
+            </svg>
+            <p data-empty={m.key} class="hidden text-sm text-grey font-sans mt-2">
+              No data in this range yet.
+            </p>
+          </div>
+        ))
+      }
+    </div>
+  </details>
+
   <p class="font-mono text-xs text-grey m-0">
     Data from{" "}
     <a class="underline" href={weather.url} rel="noopener">{weather.name}</a>
