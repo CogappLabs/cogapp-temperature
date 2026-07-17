@@ -15,9 +15,28 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Live temperature and humidity in the Cogapp office." />
     <link rel="icon" type="image/svg+xml" href={`${base}/favicon.svg`} />
+
+    <!-- PWA: installable to a phone's home screen -->
+    <link rel="manifest" href={`${base}/manifest.webmanifest`} />
+    <meta name="theme-color" content="#ebebe1" />
+    <link rel="apple-touch-icon" href={`${base}/apple-touch-icon.png`} />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Office temp" />
+
     <title>{title}</title>
   </head>
   <body>
     <slot />
+    <script is:inline define:vars={{ swUrl: `${base}/sw.js`, swScope: `${base}/` }}>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register(swUrl, { scope: swScope })
+            .catch(() => {});
+        });
+      }
+    </script>
   </body>
 </html>
